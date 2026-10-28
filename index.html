@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Em Tả Con Vật</title>
-<meta name="description" content="Web giúp học sinh lớp 4 học viết bài văn tả con vật, có AI Gemini nhận xét.">
+<title>Em Học Viết Văn</title>
+<meta name="description" content="Web giúp học sinh lớp 4 học viết văn theo từng bước: tả con vật, tả cây cối…, có AI Gemini nhận xét.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Lexend:wght@400;500;600&display=swap">
@@ -193,14 +193,29 @@ mark.rep{box-shadow:inset 0 -2px 0 var(--warn)}
 .tablewrap{overflow-x:auto}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:.95rem;z-index:20}
 .confirm{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--red-soft);padding:10px 14px;border-radius:14px}
+
+.home-link{color:inherit;text-decoration:none}
+.btn.small{padding:6px 12px;font-size:.88rem}
+a.btn{text-decoration:none;color:inherit}
+.outline .sub{margin:8px 0 4px;font-weight:600}
+.types{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.tcard{border:2px solid var(--border);background:var(--surface);border-radius:18px;padding:16px;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:12px;row-gap:4px;text-decoration:none;color:var(--fg);align-items:start}
+.tcard .e{font-size:2.4rem;line-height:1;grid-row:1/4}
+.tcard .tt{font-family:var(--f-display);font-weight:700;font-size:1.25rem;line-height:1.2}
+.tcard .td{font-size:.9rem;color:var(--muted)}
+.tcard .st{justify-self:start;font-size:.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--muted)}
+.tcard .st.on{background:var(--ink-soft);color:var(--ink)}
+a.tcard:hover{border-color:var(--ink)}
+.tcard.soon{opacity:.55;border-style:dashed}
 </style>
 </head>
 <body>
-
-
 <header class="top">
   <div class="wrap">
-    <div class="brand"><h1>Em Tả Con Vật</h1><div class="row"><span class="who" id="who"></span><button class="btn sec" style="padding:6px 12px;font-size:.88rem" data-act="set-open" id="setbtn">Cài đặt AI</button></div></div>
+    <div class="brand">
+      <h1><a href="#" class="home-link">Em Học Viết Văn</a></h1>
+      <div class="row"><span class="who" id="who"></span><button class="btn sec small" data-act="set-open">Cài đặt AI</button></div>
+    </div>
     <nav class="steps" id="steps" aria-label="Các bước"></nav>
   </div>
 </header>
@@ -208,183 +223,97 @@ mark.rep{box-shadow:inset 0 -2px 0 var(--warn)}
 <main class="wrap" id="main"></main>
 <div class="toast" id="toast" hidden></div>
 
+<!-- Mỗi kiểu bài là một file trong thư mục kieubai/. Thêm kiểu bài mới: thêm một dòng script ở đây. -->
+<script src="kieubai/ta-con-vat.js"></script>
+<script src="kieubai/ta-cay-coi.js"></script>
+
 <script>
-/* ---------------- Dữ liệu ---------------- */
-const ANIMALS = [
- {id:'meo',name:'con mèo',e:'🐱',parts:[
-  ['Tầm vóc',['to bằng cái phích nước','nhỏ xíu','tròn trịa','bụ bẫm']],
-  ['Bộ lông',['vàng mướp','tam thể','trắng muốt','đen tuyền','mượt như nhung','mềm như bông']],
-  ['Cái đầu',['tròn như quả bóng nhỏ','nhỏ nhắn']],
-  ['Đôi mắt',['tròn xoe','long lanh như hòn bi ve','xanh biếc','ban đêm sáng quắc']],
-  ['Đôi tai',['nhỏ xíu','hình tam giác','vểnh lên nghe ngóng']],
-  ['Bộ ria',['trắng','cứng như sợi cước','vểnh lên']],
-  ['Bốn chân',['ngắn','có móng vuốt sắc','đệm thịt êm','bước đi nhẹ nhàng']],
-  ['Cái đuôi',['dài','thướt tha','ngoe nguẩy','cong lên']]],
-  hoat:['rình chuột','nằm sưởi nắng','liếm lông','vờn cuộn len','kêu meo meo','rón rén','vồ thật nhanh','dụi đầu vào chân em']},
- {id:'cho',name:'con chó',e:'🐶',parts:[
-  ['Tầm vóc',['to','khỏe mạnh','nhỏ nhắn','bụ bẫm']],
-  ['Bộ lông',['vàng','đen tuyền','đốm trắng đen','mượt','dày']],
-  ['Cái đầu',['to','tròn','nhỏ nhắn']],
-  ['Đôi mắt',['đen láy','tròn xoe','tinh nhanh','hiền lành']],
-  ['Đôi tai',['to','cụp xuống','vểnh lên','dựng đứng']],
-  ['Cái mõm',['dài','ươn ướt','đen bóng','thính hơi']],
-  ['Bốn chân',['chắc khỏe','chạy nhanh thoăn thoắt']],
-  ['Cái đuôi',['cong như cái móc','ngoáy tít','vẫy rối rít']]],
-  hoat:['canh nhà','sủa gâu gâu','chạy ra đón em','quấn quýt bên chân','đánh hơi','gặm xương','nằm ngủ trước cửa']},
- {id:'gatrong',name:'con gà trống',e:'🐓',parts:[
-  ['Tầm vóc',['cao lớn','oai vệ','to khỏe']],
-  ['Bộ lông',['óng mượt','nhiều màu','đỏ tía','xanh biếc','vàng óng']],
-  ['Cái mào',['đỏ chót','đỏ rực như lửa','to như bông hoa','hình răng cưa']],
-  ['Đôi mắt',['tròn','đen nhánh','như hạt tiêu']],
-  ['Cái mỏ',['vàng','nhọn','cứng']],
-  ['Đôi chân',['cao','vàng','có cựa nhọn']],
-  ['Cái đuôi',['cong vồng','dài','nhiều màu','như cầu vồng']]],
-  hoat:['gáy ò ó o','vỗ cánh phành phạch','bới đất tìm giun','dẫn đàn gà','đi lại oai vệ','vươn cổ']},
- {id:'gamai',name:'con gà mái',e:'🐔',parts:[
-  ['Tầm vóc',['tròn trịa','vừa vừa','béo']],
-  ['Bộ lông',['vàng nâu','mượt','xù lên khi có người lạ']],
-  ['Cái mào',['nhỏ','đỏ hồng']],
-  ['Đôi mắt',['tròn','tinh']],
-  ['Cái mỏ',['vàng','ngắn','nhọn']],
-  ['Đôi chân',['vàng','có móng','bới đất']]],
-  hoat:['cục tác','ấp trứng','dẫn đàn con','xòe cánh che con','bới đất tìm mồi','gọi con tục tục']},
- {id:'vit',name:'con vịt',e:'🦆',parts:[
-  ['Tầm vóc',['nhỏ','tròn','béo núc']],
-  ['Bộ lông',['trắng muốt','xám','mượt','không thấm nước']],
-  ['Cái đầu',['nhỏ','tròn']],
-  ['Cái mỏ',['dẹt','vàng','to bản']],
-  ['Đôi mắt',['đen','tròn']],
-  ['Đôi chân',['ngắn','có màng','như mái chèo']],
-  ['Cái đuôi',['ngắn','cong']]],
-  hoat:['bơi lội','lặn ngụp','kêu cạc cạc','đi lạch bạch','rỉa lông','mò tép']},
- {id:'tho',name:'con thỏ',e:'🐰',parts:[
-  ['Tầm vóc',['nhỏ','tròn như cục bông','bụ bẫm']],
-  ['Bộ lông',['trắng như bông','xám','mềm mượt']],
-  ['Đôi tai',['dài','dựng đứng','hồng hồng']],
-  ['Đôi mắt',['đỏ hồng','tròn','như hạt ngọc']],
-  ['Cái mũi',['hồng','luôn động đậy']],
-  ['Bộ ria',['dài','trắng']],
-  ['Bốn chân',['chân sau dài','nhảy xa']],
-  ['Cái đuôi',['ngắn','như cục bông']]],
-  hoat:['gặm cà rốt','nhảy tung tăng','dụi mũi','dỏng tai nghe ngóng','ăn rau']},
- {id:'trau',name:'con trâu',e:'🐃',parts:[
-  ['Tầm vóc',['to lớn','khỏe mạnh','vạm vỡ']],
-  ['Bộ lông',['đen bóng','thưa','cứng']],
-  ['Cặp sừng',['cong','như hai lưỡi liềm','nhọn']],
-  ['Đôi mắt',['to','hiền lành','đen láy']],
-  ['Đôi tai',['to','phe phẩy']],
-  ['Bốn chân',['to','chắc khỏe','như cột nhà']],
-  ['Cái đuôi',['dài','quất qua quất lại']]],
-  hoat:['cày ruộng','gặm cỏ','đầm mình dưới ao','nhai lại','kéo xe','thong thả bước']},
- {id:'lon',name:'con lợn',e:'🐷',parts:[
-  ['Tầm vóc',['tròn trùng trục','béo','múp míp']],
-  ['Bộ lông',['trắng hồng','đen','thưa']],
-  ['Cái mõm',['dài','có hai lỗ mũi','hay ủi đất']],
-  ['Đôi tai',['to','như cái quạt','cụp']],
-  ['Đôi mắt',['nhỏ','híp']],
-  ['Bốn chân',['ngắn','có móng']],
-  ['Cái đuôi',['ngắn','xoăn tít']]],
-  hoat:['ăn ngấu nghiến','kêu ụt ịt','ủi đất','nằm ngủ','đòi ăn eng éc']},
- {id:'ca',name:'con cá vàng',e:'🐠',parts:[
-  ['Thân hình',['nhỏ','bầu bĩnh','thon']],
-  ['Lớp vảy',['vàng óng','lấp lánh','đỏ cam']],
-  ['Đôi mắt',['tròn','lồi','như hai hạt cườm']],
-  ['Cái miệng',['nhỏ','đớp đớp']],
-  ['Vây',['mỏng','như dải lụa']],
-  ['Cái đuôi',['xòe như cánh quạt','mềm mại','ve vẩy']]],
-  hoat:['bơi lượn','đớp mồi','đớp bong bóng','luồn qua rong','đuổi nhau']},
+/* ======================= KHUNG DÙNG CHUNG ======================= */
+const KB = window.KIEUBAI || [];
+const SAP_CO = [
+ {ten:'Thuật lại một sự việc', e:'📣'},
+ {ten:'Kể lại câu chuyện', e:'📖'},
+ {ten:'Đoạn văn nêu ý kiến', e:'💬'},
+ {ten:'Viết thư', e:'✉️'}
 ];
-const GENERIC = {parts:[
-  ['Tầm vóc',['to','nhỏ nhắn','tròn trịa']],
-  ['Bộ lông (hoặc da, vảy)',['mượt','mềm','óng ánh','sần sùi','trơn bóng']],
-  ['Cái đầu',['tròn','nhỏ','to']],
-  ['Đôi mắt',['tròn xoe','đen láy','long lanh','tinh nhanh']],
-  ['Miệng (mỏ, mõm)',['nhọn','dài','nhỏ xíu']],
-  ['Chân',['ngắn','dài','chắc khỏe','nhanh nhẹn']],
-  ['Đuôi',['dài','ngắn','ngoe nguẩy']]],
-  hoat:['ăn','ngủ','chạy nhảy','kêu','chơi đùa','tìm mồi']};
-
-const QMAP = {
- 'Tầm vóc':'{T} to hay nhỏ? To bằng vật gì em biết?',
- 'Thân hình':'Thân hình {t} to hay nhỏ, tròn hay thon?',
- 'Bộ lông':'Bộ lông màu gì? Sờ vào em thấy thế nào?',
- 'Đôi mắt':'Đôi mắt màu gì, hình gì? Trông giống cái gì?',
- 'Cái đuôi':'Cái đuôi dài hay ngắn? {T} hay làm gì với cái đuôi?'
-};
-const NGUON = ['bà ngoại cho','bố mẹ mua ở chợ','nhà hàng xóm cho','từ khi còn bé xíu','dịp Tết năm ngoái','nuôi đã lâu'];
-const TQ = ['chạy ra đón em','quấn quýt bên em','nằm im cho em vuốt ve','kêu lên mừng rỡ','theo em khắp nhà'];
-const KET = ['em rất yêu quý','như một người bạn','em sẽ chăm sóc thật tốt','cho ăn đầy đủ','em không bao giờ quên'];
-
-const MODELS = {
- meo:{name:'con mèo Mi Mi',
-  mo:'Nhà em có nuôi một chú mèo tam thể tên là Mi Mi. Chú được bà ngoại cho em từ dịp Tết năm ngoái.',
-  dang:'Mi Mi to bằng cái phích nước. Bộ lông của chú có ba màu trắng, vàng, đen, sờ vào mềm như nhung. Cái đầu tròn, đôi tai nhỏ hình tam giác lúc nào cũng vểnh lên nghe ngóng. Đôi mắt chú trong veo như hai hòn bi ve, ban đêm sáng quắc. Bộ ria trắng, cứng như sợi cước. Dưới bàn chân có lớp đệm thịt êm nên chú bước đi nhẹ nhàng không một tiếng động.',
-  hoat:'Ban ngày, Mi Mi thích nằm sưởi nắng ở bậc thềm. Đến tối, chú rón rén đi rình chuột. Hễ thấy bóng chuột, chú nằm im, rồi bất ngờ vồ một cái thật nhanh. Mỗi khi em đi học về, Mi Mi lại chạy ra dụi đầu vào chân em, kêu "meo meo" như chào đón.',
-  ket:'Em rất yêu quý Mi Mi. Chú vừa là người bạn nhỏ, vừa giúp nhà em đuổi lũ chuột. Em sẽ chăm sóc chú thật chu đáo.'},
- ga:{name:'chú gà trống Chiến Binh',
-  mo:'Trong đàn gà nhà bà nội, em thích nhất chú gà trống tên là Chiến Binh.',
-  dang:'Chú gà trống cao lớn, dáng đi oai vệ. Bộ lông óng mượt pha nhiều màu đỏ tía, vàng óng và xanh biếc. Cái mào đỏ chót như một bông hoa lửa trên đầu. Đôi mắt tròn, đen nhánh như hạt tiêu. Cái mỏ vàng, nhọn và cứng. Đôi chân cao, có cựa nhọn hoắt. Cái đuôi cong vồng lên như chiếc cầu vồng nhỏ.',
-  hoat:'Sáng nào chú cũng dậy sớm, nhảy lên đống rơm, vỗ cánh phành phạch rồi vươn cổ gáy "ò ó o" thật to. Ban ngày, chú dẫn đàn gà đi kiếm ăn. Thấy con giun nào, chú lại gọi cả đàn tới.',
-  ket:'Em rất thích chú gà trống. Tiếng gáy của chú như chiếc đồng hồ báo thức, đánh thức cả xóm mỗi sáng.'}
-};
-
-const SECS = [
- {k:'mo',title:'Mở bài',len:'1–2 câu',goal:'Giới thiệu con vật em định tả: con gì, tên gì, của ai, có từ bao giờ.'},
- {k:'dang',title:'Thân bài: tả hình dáng',len:'5–8 câu',goal:'Tả bao quát trước (to hay nhỏ, bộ lông), rồi tả từng bộ phận: đầu, mắt, tai, chân, đuôi.'},
- {k:'hoat',title:'Thân bài: tả hoạt động, thói quen',len:'3–5 câu',goal:'Con vật thường làm gì? Ăn, ngủ, chơi, kêu thế nào? Nó làm gì khi gặp em?'},
- {k:'ket',title:'Kết bài',len:'1–3 câu',goal:'Nói tình cảm của em với con vật, em sẽ chăm sóc nó thế nào.'}
-];
-const STEPS = ['Chọn con vật','Quan sát, tìm ý','Dàn ý','Viết bài','Chữa bài'];
-
-/* ---------------- Trạng thái ---------------- */
-const KEY = 'em-ta-con-vat-v1';
-const fresh = () => ({step:0, reach:0, animal:null, custom:'', customParts:null, pet:'', ans:{}, essay:{mo:'',dang:'',hoat:'',ket:''}, versions:[]});
-function load(){ try{ const v = JSON.parse(localStorage.getItem(KEY)); if(v && v.essay) return Object.assign(fresh(), v); }catch(e){} return fresh(); }
-let S = load();
-let saveT;
-function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }, 250); }
+const STEPS_MAC_DINH = ['Chọn đề','Quan sát, tìm ý','Dàn ý','Viết bài','Chữa bài'];
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
-function A(){
-  if(S.animal === 'khac'){
-    const nm = S.custom.trim().replace(/^con\s+/i,'');
-    const cp = S.customParts;
-    return {id:'khac', name: nm ? 'con ' + nm : 'con vật', e:'🐾',
-      parts: cp?.parts?.length ? cp.parts : GENERIC.parts, hoat: cp?.hoat?.length ? cp.hoat : GENERIC.hoat};
-  }
-  return ANIMALS.find(a => a.id === S.animal) || null;
-}
-const ten = () => S.pet.trim() || 'nó';
-const Ten = () => cap(ten());
-function fill(t){ return t.replaceAll('{T}', Ten()).replaceAll('{t}', ten()); }
+/* ---------- tiện ích đếm câu, đếm từ (dùng chung cho mọi kiểu bài) ---------- */
+const words = s => (s||'').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+const sentences = s => (s||'').split(/[.!?…]+/).map(x=>x.trim()).filter(x => words(x).length >= 2);
+const countWord = (text, w) => words(text).filter(x => x === w).length;
+const U = {
+  words, sentences, countWord,
+  cau: s => sentences(s).length,
+  all: e => Object.values(e).join(' '),
+  soSanh: s => words(s).filter(x => ['như','tựa','giống'].includes(x)).length,
+  demTu: (s, list) => { const t = (s||'').toLowerCase(); return list.filter(w => t.includes(w)).length; },
+  list: a => (Array.isArray(a)?a:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,8),
+  bophan: a => (Array.isArray(a)?a:[]).map(b=>[String(b?.ten||'').trim(), (Array.isArray(b?.tu)?b.tu:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,6)]).filter(p=>p[0]).slice(0,8)
+};
 
-/* ---------------- Âm thanh: đọc to ---------------- */
+/* ---------- trạng thái: mỗi kiểu bài lưu riêng trên máy ---------- */
+let T = null, S = null;
+const SKEY = id => 'em-hoc-viet-van:' + id;
+const emptyEssay = () => Object.fromEntries(T.secs.map(s => [s.k, '']));
+const fresh = () => ({step:0, reach:0, dt:null, custom:'', customData:null, ans:{}, essay:emptyEssay(), versions:[]});
+function loadS(){
+  try{ const v = JSON.parse(localStorage.getItem(SKEY(T.id))); if(v && v.essay) return Object.assign(fresh(), v, {essay:Object.assign(emptyEssay(), v.essay)}); }catch(e){}
+  if(T.id === 'ta-con-vat'){ // chuyển bài cũ từ bản đầu tiên
+    try{ const o = JSON.parse(localStorage.getItem('em-ta-con-vat-v1'));
+      if(o && o.essay) return Object.assign(fresh(), {step:o.step||0, reach:o.reach||0, dt:o.animal||null, custom:o.custom||'',
+        customData: o.customParts ? {for:o.customParts.for, data:{parts:o.customParts.parts, hoat:o.customParts.hoat}} : null,
+        ans:Object.assign({}, o.ans, o.pet ? {ten:o.pet} : {}), essay:Object.assign(emptyEssay(), o.essay), versions:o.versions||[]});
+    }catch(e){}
+  }
+  return fresh();
+}
+let saveT;
+function save(){ if(!T) return; const id = T.id, data = S; clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(SKEY(id), JSON.stringify(data)); }catch(e){} }, 250); }
+function savedInfo(id){ try{ const v = JSON.parse(localStorage.getItem(SKEY(id)) || (id==='ta-con-vat' ? localStorage.getItem('em-ta-con-vat-v1') : 'null')); if(v && (v.dt || v.animal || v.versions?.length)) return v; }catch(e){} return null; }
+
+/* ---------- đối tượng đang tả (con vật, cây...) ---------- */
+function D(){
+  if(!S || !S.dt) return null;
+  if(S.dt === 'khac'){
+    const k = T.chon.khac, raw = S.custom.trim().toLowerCase();
+    const pre = k.tienTo.trim();
+    const nm = raw ? (new RegExp('^' + pre + '\\s+').test(raw) ? raw : k.tienTo + raw) : k.tenMacDinh;
+    const cd = S.customData && S.customData.for === S.custom.trim() ? S.customData.data : null;
+    const base = Object.assign({}, T.chon.chung);
+    if(cd) for(const [key,val] of Object.entries(cd)) if(Array.isArray(val) && val.length) base[key] = val;
+    return Object.assign(base, {id:'khac', name:nm, short:nm.replace(new RegExp('^' + pre + '\\s+'), ''), e:k.e});
+  }
+  return T.chon.ds.find(x => x.id === S.dt) || null;
+}
+function C(){ const dt = D(); const ten = () => T.goi(dt, S.ans); return {dt, ans:S.ans, ten, Ten:() => cap(ten())}; }
+const allQs = () => T.nhom(C()).flatMap(g => g.qs);
+const val = k => (S.ans[k]||'').trim();
+
+/* ---------- đọc to ---------- */
 const canSpeak = 'speechSynthesis' in window;
 const SPK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
 function sayBtn(text){ return canSpeak ? `<button class="say" data-act="say" data-t="${esc(text)}" aria-label="Đọc to" title="Đọc to">${SPK}</button>` : ''; }
 function speak(t){ try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang='vi-VN'; u.rate=.9; speechSynthesis.speak(u); }catch(e){} }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2400); }
 
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2200); }
-
-/* ---------------- Gemini (nhận xét AI) ----------------
-   API key của giáo viên lấy ở Google AI Studio, chỉ lưu trên trình duyệt của máy này. */
+/* ======================= GEMINI ======================= */
 const GKEY = 'em-ta-con-vat-gemini';
 const API = 'https://generativelanguage.googleapis.com/v1beta';
 function loadG(){ try{ const v = JSON.parse(localStorage.getItem(GKEY)); if(v && typeof v.key==='string') return {key:v.key, model:v.model||'', models:Array.isArray(v.models)?v.models:[]}; }catch(e){} return {key:'', model:'', models:[]}; }
 function saveG(){ try{ localStorage.setItem(GKEY, JSON.stringify(G)); }catch(e){} }
 let G = loadG();
-let sampleFn = null; const sampleReady = true;
-function refreshAI(){ sampleFn = (G.key && G.model) ? {json: geminiJSON} : null; }
-refreshAI();
+const aiOn = () => !!(G.key && G.model);
 let aiBusy = false, aiCtl = null, aiMsg = '', wbBusy = false;
 
 function gErr(code, message){ return {code, message: message||code}; }
 async function gFetch(path, opts={}, key=G.key){
   let res;
-  try{ res = await fetch(API + path, {...opts, headers:{'Content-Type':'application/json','x-goog-api-key':key, ...(opts.headers||{})}}); }
+  try{ res = await fetch(API + path, {...opts, headers:{'Content-Type':'application/json','x-goog-api-key':key}}); }
   catch(e){ if(e?.name==='AbortError') throw gErr('cancelled'); throw gErr('network', String(e)); }
   let body = null; try{ body = await res.json(); }catch(e){}
   if(!res.ok){
@@ -435,217 +364,175 @@ function errCopy(code){
   return 'Có trục trặc khi gửi bài. Em bấm lại sau một chút nhé.';
 }
 
-/* ---------------- Cài đặt AI (cho giáo viên) ---------------- */
+/* ---------- Cài đặt AI (cho giáo viên) ---------- */
 let setOpen = false, setBusy = false, setMsg = '', setOk = false;
 function renderSettings(){
   const el = $('#settings'); el.hidden = !setOpen; if(!setOpen) return;
   const masked = G.key ? G.key.slice(0,6) + '•••••••' + G.key.slice(-4) : '';
   el.innerHTML = `<div class="card" style="border-color:var(--ink)">
     <div class="qh"><h3>Cài đặt AI <span class="tag">Dành cho thầy cô</span></h3><button class="btn sec" data-act="set-close">Đóng</button></div>
-    <p style="margin:0">Trang dùng <b>Gemini API</b> của Google. Thầy cô vào <b>aistudio.google.com</b>, đăng nhập Gmail, bấm <b>Get API key</b> → <b>Create API key</b>, rồi dán key vào ô dưới đây. Key chỉ lưu trên trình duyệt của máy này, không gửi đi đâu ngoài Google.</p>
+    <p style="margin:0">Trang dùng <b>Gemini API</b> của Google. Thầy cô vào <b>aistudio.google.com</b>, đăng nhập Gmail, bấm <b>Get API key</b> → <b>Create API key</b>, rồi dán key vào ô dưới đây. Key chỉ lưu trên trình duyệt của máy này và dùng chung cho mọi kiểu bài.</p>
     <div class="custom">
       <input class="inp" id="gkey" type="password" autocomplete="off" spellcheck="false" placeholder="${G.key ? 'Đã lưu: ' + esc(masked) : 'Dán API key, bắt đầu bằng AIza…'}" style="flex:1 1 260px">
       <button class="btn pri" data-act="set-test" ${setBusy?'disabled':''}>${setBusy?'<span class="spin"></span> Đang kiểm tra…':'Kiểm tra và lưu'}</button>
     </div>
     ${G.models.length ? `<div class="custom"><label for="gmodel"><b>Mô hình AI</b></label>
       <select class="inp" id="gmodel" style="flex:1 1 220px">${G.models.map(m=>`<option value="${esc(m)}" ${m===G.model?'selected':''}>${esc(m)}</option>`).join('')}</select></div>
-      <p style="margin:0;font-size:.88rem;color:var(--muted)">Nên chọn loại <b>flash</b>: nhanh, rẻ và gói miễn phí cho dùng nhiều lượt hơn loại pro.</p>` : ''}
+      <p style="margin:0;font-size:.88rem;color:var(--muted)">Nên chọn loại <b>flash</b>: nhanh, và gói miễn phí cho dùng nhiều lượt hơn loại pro.</p>` : ''}
     ${setMsg ? `<p style="margin:0;color:${setOk?'var(--ok)':'var(--red)'}">${esc(setMsg)}</p>` : ''}
     ${G.key ? `<div class="row"><button class="btn sec" data-act="set-clear">Xóa key khỏi máy này</button></div>` : ''}
   </div>`;
 }
 async function testKey(){
-  const inp = $('#gkey'); const key = (inp?.value || '').trim() || G.key;
+  const key = ($('#gkey')?.value || '').trim() || G.key;
   if(!key){ setMsg='Thầy cô chưa dán API key.'; setOk=false; renderSettings(); return; }
   setBusy=true; setMsg=''; renderSettings();
   try{
     const ms = await listModels(key);
     if(!ms.length) throw gErr('bad_model','Không tìm thấy mô hình Gemini nào cho key này.');
     G.key = key; G.models = ms; if(!ms.includes(G.model)) G.model = ms[0];
-    saveG(); refreshAI();
-    setOk=true; setMsg=`Key dùng được. Đang dùng mô hình ${G.model}.`;
+    saveG(); setOk=true; setMsg=`Key dùng được. Đang dùng mô hình ${G.model}.`;
   }catch(e){ setOk=false; setMsg = e.code==='bad_key' ? 'Key không đúng. Thầy cô kiểm tra đã chép đủ cả key chưa.' : e.code==='network' ? 'Không kết nối được tới Google. Kiểm tra mạng của máy.' : 'Chưa kiểm tra được: ' + (e.message||e.code); }
   finally{ setBusy=false; renderSettings(); render(false); }
 }
 
-/* ---------------- Kiểm tra nhanh (không cần mạng) ---------------- */
-const words = s => (s||'').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
-const sentences = s => (s||'').split(/[.!?…]+/).map(x=>x.trim()).filter(x => words(x).length >= 2);
-function countWord(text, w){ return words(text).filter(x => x === w).length; }
-
-function localCheck(e){
-  const all = [e.mo,e.dang,e.hoat,e.ket].join(' ');
-  const w = words(all);
-  const items = [];
-  const nMo = sentences(e.mo).length, nDang = sentences(e.dang).length, nHoat = sentences(e.hoat).length, nKet = sentences(e.ket).length;
-  items.push({ok: nMo>=1 && nKet>=1, t:'Có đủ mở bài và kết bài', h: nMo<1 ? 'Em chưa có mở bài. Hãy giới thiệu con vật của em.' : nKet<1 ? 'Em chưa có kết bài. Hãy nói tình cảm của em với con vật.' : ''});
-  items.push({ok: nDang>=4, t:'Tả hình dáng ít nhất 4 câu', h:`Em mới có ${nDang} câu. Hãy tả thêm bộ phận khác: mắt, tai, chân, đuôi…`});
-  items.push({ok: nHoat>=3, t:'Tả hoạt động ít nhất 3 câu', h:`Em mới có ${nHoat} câu. ${cap(ten())} thường làm gì khi ăn, khi chơi, khi gặp em?`});
-  const ss = w.filter(x => ['như','tựa','giống'].includes(x)).length;
-  items.push({ok: ss>=2, t:'Có ít nhất 2 hình ảnh so sánh', h: ss===1 ? 'Em đã có 1 hình ảnh so sánh. Thêm một hình ảnh nữa nhé, ví dụ: "… như …".' : 'Thử dùng từ "như" để so sánh, ví dụ: đôi mắt tròn như …'});
-  const senseWords = ['nghe','tiếng','kêu','sờ','mềm','mượt','ấm','ngửi','thơm','êm','nhám','ráp'];
-  const sense = new Set(w.filter(x => senseWords.includes(x))).size;
-  items.push({ok: sense>=2, t:'Tả bằng cả tai và tay, không chỉ bằng mắt', h:'Em nghe thấy tiếng kêu thế nào? Sờ vào bộ lông thấy ra sao?'});
-  const low = lowerStarts(e);
-  items.push({ok: low.length===0, t:'Viết hoa chữ đầu câu', h:`Có ${low.length} chỗ chữ đầu câu chưa viết hoa (tô màu vàng trong bài).`});
-  const nNo = countWord(all,'nó'), nRat = countWord(all,'rất'), nVa = countWord(all,'và');
-  const rep = [];
-  if(nNo>4) rep.push(`"nó" (${nNo} lần)`); if(nRat>3) rep.push(`"rất" (${nRat} lần)`); if(nVa>5) rep.push(`"và" (${nVa} lần)`);
-  items.push({ok: rep.length===0, t:'Không lặp từ quá nhiều', h:`Em dùng ${rep.join(', ')}. Thử thay bằng tên con vật, "chú", "cô" hoặc từ khác.`});
-  const longS = [e.mo,e.dang,e.hoat,e.ket].flatMap(sentences).filter(x => words(x).length > 35).length;
-  items.push({ok: longS===0, t:'Câu không quá dài', h:`Có ${longS} câu quá dài. Hãy đặt dấu chấm để tách thành câu ngắn hơn.`});
-  const feel = /(yêu|quý|thương|thích|chăm sóc|người bạn|nhớ)/i.test(e.ket);
-  items.push({ok: feel, t:'Kết bài nói được tình cảm của em', h:'Em yêu quý con vật thế nào? Em sẽ làm gì cho nó?'});
-  const score = items.filter(i=>i.ok).length;
-  return {items, score, total: items.length, words: w.length};
-}
+/* ======================= KIỂM TRA NHANH ======================= */
 function lowerStarts(e){
   const out = [];
-  for(const sec of ['mo','dang','hoat','ket']){
-    const t = e[sec] || '';
-    const re = /(^|[.!?…]\s*\n?\s*)(\p{L})/gu; let m;
-    while((m = re.exec(t))){
-      const ch = m[2]; const pos = m.index + m[1].length;
-      if(ch !== ch.toUpperCase()) out.push({sec, s:pos, e:pos + wordLen(t,pos)});
-    }
+  for(const sec of Object.keys(e)){
+    const t = e[sec] || ''; const re = /(^|[.!?…]\s*\n?\s*)(\p{L})/gu; let m;
+    while((m = re.exec(t))){ const ch = m[2], pos = m.index + m[1].length; if(ch !== ch.toUpperCase()){ let i=pos; while(i<t.length && /\p{L}/u.test(t[i])) i++; out.push({sec, s:pos, e:i}); } }
   }
   return out;
 }
-function wordLen(t,pos){ let i=pos; while(i<t.length && /\p{L}/u.test(t[i])) i++; return i-pos; }
+function localCheck(e){
+  const c = C(), all = U.all(e), first = T.secs[0].k, last = T.secs[T.secs.length-1].k;
+  const items = [{ok: U.cau(e[first])>=1 && U.cau(e[last])>=1, t:'Có đủ mở bài và kết bài', h: U.cau(e[first])<1 ? 'Em chưa có mở bài. Hãy viết câu giới thiệu.' : 'Em chưa có kết bài. Hãy nói tình cảm của em.'}];
+  items.push(...T.kiemTra(e, c, U));
+  const low = lowerStarts(e);
+  items.push({ok: low.length===0, t:'Viết hoa chữ đầu câu', h:`Có ${low.length} chỗ chữ đầu câu chưa viết hoa (tô màu vàng trong bài).`});
+  const nNo = countWord(all,'nó'), nRat = countWord(all,'rất'), nVa = countWord(all,'và'), rep = [];
+  if(nNo>4) rep.push(`"nó" (${nNo} lần)`); if(nRat>3) rep.push(`"rất" (${nRat} lần)`); if(nVa>5) rep.push(`"và" (${nVa} lần)`);
+  items.push({ok: rep.length===0, t:'Không lặp từ quá nhiều', h:`Em dùng ${rep.join(', ')}. Thử thay bằng tên gọi hoặc từ khác.`});
+  const longS = Object.values(e).flatMap(sentences).filter(x => words(x).length > 35).length;
+  items.push({ok: longS===0, t:'Câu không quá dài', h:`Có ${longS} câu quá dài. Hãy đặt dấu chấm để tách thành câu ngắn hơn.`});
+  return {items, score: items.filter(i=>i.ok).length, total: items.length, words: words(all).length};
+}
 
-/* ---------------- Vẽ giao diện ---------------- */
+/* ======================= GIAO DIỆN ======================= */
+const cur = () => S?.versions[S.versions.length-1] || null;
 function render(scroll=true){
-  const a = A();
-  $('#who').textContent = a ? `Em đang tả: ${a.name}${S.pet.trim() ? ' – ' + S.pet.trim() : ''}` : '';
-  $('#steps').innerHTML = STEPS.map((s,i)=>`<button data-act="go" data-i="${i}" class="${i===S.step?'on':''} ${i<S.reach||i<S.step?'done':''}" ${i>S.reach?'disabled':''} aria-current="${i===S.step?'step':'false'}"><span class="n">${i+1}</span>${s}</button>`).join('');
-  const m = $('#main');
-  m.innerHTML = [vPick,vObserve,vOutline,vWrite,vCheck][S.step]();
+  const steps = $('#steps');
+  if(!T){ $('#who').textContent=''; steps.hidden = true; $('#main').innerHTML = vHome(); if(scroll) window.scrollTo({top:0}); return; }
+  const c = C(), STEPS = T.buoc || STEPS_MAC_DINH;
+  $('#who').textContent = c.dt ? `${T.ten}: ${T.nhan(c.dt, S.ans)}` : T.ten;
+  steps.hidden = false;
+  steps.innerHTML = STEPS.map((s,i)=>`<button data-act="go" data-i="${i}" class="${i===S.step?'on':''} ${i<S.reach||i<S.step?'done':''}" ${i>S.reach?'disabled':''} aria-current="${i===S.step?'step':'false'}"><span class="n">${i+1}</span>${esc(s)}</button>`).join('');
+  $('#main').innerHTML = [vPick,vObserve,vOutline,vWrite,vCheck][S.step]();
   if(scroll) window.scrollTo({top:0});
 }
 
-function vPick(){
+function vHome(){
   return `
-  <section class="lead"><h2>Em muốn tả con vật nào?</h2>
-   <p>Mỗi bạn chọn con vật mà em biết rõ nhất: con vật nhà em, nhà ông bà, hay con em đã nhìn thật kỹ. Nếu không có trong danh sách, em chọn "Con vật khác" rồi gõ tên.</p></section>
-  <div class="grid">
-   ${ANIMALS.map(x=>`<button class="pick ${S.animal===x.id?'sel':''}" data-act="pick" data-id="${x.id}"><span class="e" aria-hidden="true">${x.e}</span>${cap(x.name.replace('con ',''))}</button>`).join('')}
-   <button class="pick ${S.animal==='khac'?'sel':''}" data-act="pick" data-id="khac"><span class="e" aria-hidden="true">🐾</span>Con vật khác</button>
-  </div>
-  ${S.animal==='khac' ? `<div class="card"><label for="custom"><b>Con vật em tả là con gì?</b></label>
-     <div class="custom"><input class="inp" id="custom" data-k="custom" placeholder="Ví dụ: con chim sáo, con rùa, con bò…" value="${esc(S.custom)}" style="flex:1 1 240px"></div></div>` : ''}
-  <div class="nav"><span></span><button class="btn pri" data-act="next" ${S.animal && (S.animal!=='khac'||S.custom.trim())?'':'disabled'}>Bắt đầu quan sát →</button></div>`;
+  <section class="lead"><h2>Hôm nay em viết bài văn gì?</h2>
+   <p>Chọn kiểu bài cô giao. Web sẽ hướng dẫn em từng bước: quan sát, tìm ý, lập dàn ý, viết bài và chữa bài.</p></section>
+  <div class="types">
+   ${KB.map(k=>{ const v = savedInfo(k.id); const st = v ? (v.versions?.length ? `Đã nộp ${v.versions.length} lần` : 'Đang làm dở') : 'Bài mới';
+     return `<a class="tcard" href="#${esc(k.id)}"><span class="e" aria-hidden="true">${k.e}</span><span class="tt">${esc(k.ten)}</span><span class="td">${esc(k.moTa)}</span><span class="st ${v?'on':''}">${esc(st)}</span></a>`; }).join('')}
+   ${SAP_CO.map(k=>`<div class="tcard soon" aria-disabled="true"><span class="e" aria-hidden="true">${k.e}</span><span class="tt">${esc(k.ten)}</span><span class="st">Sắp có</span></div>`).join('')}
+  </div>`;
 }
 
-function qBlock(key, label, sub, chips, rows=1){
-  const v = S.ans[key] || '';
-  return `<div class="q"><div class="qh"><label for="q-${esc(key)}">${esc(label)}${sub?`<small>${esc(sub)}</small>`:''}</label>${sayBtn(label + '. ' + (sub||''))}</div>
-   <textarea class="ans" id="q-${esc(key)}" data-k="${esc(key)}" rows="${rows}">${esc(v)}</textarea>
-   ${chips?.length ? `<div class="chips">${chips.map(c=>`<button class="chip" data-act="chip" data-k="${esc(key)}" data-w="${esc(c)}">+ ${esc(c)}</button>`).join('')}</div>`:''}</div>`;
+function vPick(){
+  const ch = T.chon, k = ch.khac;
+  const ok = S.dt && (S.dt!=='khac' || S.custom.trim());
+  return `
+  <section class="lead"><h2>${esc(ch.tieuDe)}</h2><p>${esc(ch.moTa)}</p></section>
+  <div class="grid">
+   ${ch.ds.map(x=>`<button class="pick ${S.dt===x.id?'sel':''}" data-act="pick" data-id="${esc(x.id)}"><span class="e" aria-hidden="true">${x.e}</span>${esc(x.label || cap(x.name))}</button>`).join('')}
+   <button class="pick ${S.dt==='khac'?'sel':''}" data-act="pick" data-id="khac"><span class="e" aria-hidden="true">${k.e}</span>${esc(k.nhan)}</button>
+  </div>
+  ${S.dt==='khac' ? `<div class="card"><label for="custom"><b>${esc(k.hoi)}</b></label>
+     <div class="custom"><input class="inp" id="custom" data-k="custom" placeholder="${esc(k.placeholder)}" value="${esc(S.custom)}" style="flex:1 1 240px"></div></div>` : ''}
+  <div class="nav"><a class="btn sec" href="#">← Kiểu bài khác</a><button class="btn pri" data-act="next" ${ok?'':'disabled'}>Bắt đầu quan sát →</button></div>`;
+}
+
+function qBlock(q){
+  const v = S.ans[q.key] || '', id = 'q-' + q.key;
+  const field = q.input
+    ? `<input class="inp" id="${esc(id)}" data-k="${esc(q.key)}" ${q.rerender?'data-rr="1"':''} value="${esc(v)}" placeholder="${esc(q.placeholder||'')}">`
+    : `<textarea class="ans" id="${esc(id)}" data-k="${esc(q.key)}" rows="${q.rows||1}" placeholder="${esc(q.placeholder||'')}">${esc(v)}</textarea>`;
+  return `<div class="q"><div class="qh"><label for="${esc(id)}">${esc(q.label)}${q.sub?`<small>${esc(q.sub)}</small>`:''}</label>${sayBtn(q.label + '. ' + (q.sub||''))}</div>
+   ${field}
+   ${q.chips?.length ? `<div class="chips">${q.chips.map(w=>`<button class="chip" data-act="chip" data-k="${esc(q.key)}" data-w="${esc(w)}">+ ${esc(w)}</button>`).join('')}</div>`:''}</div>`;
 }
 
 function vObserve(){
-  const a = A();
-  const wb = (S.animal==='khac' && sampleFn) ? `<div class="tip row" style="justify-content:space-between"><span>Chưa có sẵn từ gợi ý cho <b>${esc(a.name)}</b>. Cô AI có thể gợi ý các bộ phận và từ ngữ để em tham khảo.</span>
+  const c = C();
+  const wb = (S.dt==='khac' && aiOn() && T.chon.khac.tuNguAI) ? `<div class="tip row" style="justify-content:space-between"><span>Chưa có sẵn từ gợi ý cho <b>${esc(c.dt.name)}</b>. Cô AI có thể gợi ý các bộ phận và từ ngữ để em tham khảo.</span>
      <button class="btn sec" data-act="wordbank" ${wbBusy?'disabled':''}>${wbBusy?'<span class="spin"></span> Đang tìm từ…':'Gợi ý từ ngữ'}</button></div>` : '';
   return `
-  <section class="lead"><h2>Quan sát và tìm ý</h2>
-   <p>Hãy nhìn thật kỹ ${esc(a.name)} (hoặc ảnh của nó) rồi trả lời từng câu hỏi. Chỉ cần viết vài chữ. Em có thể bấm vào từ gợi ý để thêm vào câu trả lời.</p></section>
+  <section class="lead"><h2>Quan sát và tìm ý</h2><p>${esc(T.quanSat(c))}</p></section>
   ${wb}
-  <div class="card"><h3><span class="tag">Mở bài</span> Giới thiệu</h3>
-    <div class="q"><div class="qh"><label for="pet">Em gọi ${esc(a.name)} là gì?<small>Nếu không có tên, em để trống.</small></label></div>
-      <input class="inp" id="pet" data-k="pet" value="${esc(S.pet)}" placeholder="Ví dụ: Mi Mi, Lu Lu, Bông…"></div>
-    ${qBlock('mo_nguon', `Em có ${ten()} từ bao giờ? Ai cho, hay mua ở đâu?`, '', NGUON)}
-  </div>
-  <div class="card"><h3><span class="tag">Thân bài</span> Hình dáng</h3>
-    ${a.parts.map(([lb,ws])=> qBlock('p:'+lb, fill(QMAP[lb] || `${lb} của {t} trông thế nào?`), QMAP[lb] ? lb : 'Màu gì, to hay nhỏ, trông giống cái gì?', ws)).join('')}
-  </div>
-  <div class="card"><h3><span class="tag">Thân bài</span> Hoạt động, thói quen</h3>
-    ${qBlock('hd', `${Ten()} thường làm gì?`, 'Khi ăn, khi ngủ, khi chơi. Tiếng kêu thế nào?', a.hoat, 2)}
-    ${qBlock('tq', `Khi em đi học về hoặc khi em chơi với ${ten()}, ${ten()} làm gì?`, '', TQ)}
-  </div>
-  <div class="card"><h3><span class="tag">Kết bài</span> Tình cảm của em</h3>
-    ${qBlock('ket', `Em thấy ${ten()} thế nào? Em sẽ chăm sóc ${ten()} ra sao?`, '', KET)}
-  </div>
+  ${T.nhom(c).map(g=>`<div class="card"><h3><span class="tag">${esc(g.tag)}</span> ${esc(g.title)}</h3>${g.qs.map(qBlock).join('')}</div>`).join('')}
   <div id="miss"></div>
-  <div class="nav"><button class="btn sec" data-act="back">← Đổi con vật</button><button class="btn pri" data-act="next">Xem dàn ý →</button></div>`;
+  <div class="nav"><button class="btn sec" data-act="back">← Chọn lại</button><button class="btn pri" data-act="next">Xem dàn ý →</button></div>`;
 }
 
-function filledParts(){ return A().parts.filter(([lb]) => (S.ans['p:'+lb]||'').trim()); }
+function ideasFor(k){ return allQs().filter(q => q.phan===k && val(q.key)).map(q => `${q.ngan ? q.ngan + ': ' : ''}${val(q.key)}`); }
 
 function vOutline(){
-  const a = A(); const fp = filledParts();
-  const g = k => (S.ans[k]||'').trim();
   const em = '<span class="empty">(em chưa trả lời)</span>';
+  const secs = T.secs, mid = secs.slice(1, -1);
+  const list = k => { const l = ideasFor(k); return `<ol>${l.length ? l.map(x=>{ const i = x.indexOf(': '); return `<li>${i>0?`<b>${esc(x.slice(0,i))}:</b> ${esc(x.slice(i+2))}`:esc(x)}</li>`; }).join('') : `<li>${em}</li>`}</ol>`; };
   return `
   <section class="lead"><h2>Dàn ý bài văn của em</h2>
    <p>Đây là dàn ý được ghép từ câu trả lời của em. Đọc lại xem đã đủ chưa. Thiếu ý nào thì bấm "Sửa ý".</p></section>
   <div class="card outline">
-    <div><div class="sec">I. Mở bài</div><ol><li>Giới thiệu ${esc(a.name)}${S.pet.trim()?` tên là <b>${esc(S.pet.trim())}</b>`:''}: ${g('mo_nguon')?esc(g('mo_nguon')):em}</li></ol></div>
+    <div><div class="sec">I. Mở bài</div>${list(secs[0].k)}</div>
     <div><div class="sec">II. Thân bài</div>
-      <p style="margin:4px 0;font-weight:600">a) Tả hình dáng</p>
-      <ol>${fp.length ? fp.map(([lb])=>`<li><b>${esc(lb)}:</b> ${esc(g('p:'+lb))}</li>`).join('') : `<li>${em}</li>`}</ol>
-      <p style="margin:8px 0 4px;font-weight:600">b) Tả hoạt động, thói quen</p>
-      <ol><li>${g('hd')?esc(g('hd')):em}</li>${g('tq')?`<li>Khi gặp em: ${esc(g('tq'))}</li>`:''}</ol></div>
-    <div><div class="sec">III. Kết bài</div><ol><li>${g('ket')?esc(g('ket')):em}</li></ol></div>
+      ${mid.map((s,i)=>`<p class="sub">${'abcdef'[i]}) ${esc(s.dy || s.title)}</p>${list(s.k)}`).join('')}</div>
+    <div><div class="sec">III. Kết bài</div>${list(secs[secs.length-1].k)}</div>
   </div>
   <div class="tip"><b>Mẹo viết:</b> Mỗi ý trong dàn ý là một hoặc hai câu văn. Hãy thêm từ chỉ màu sắc, hình dáng và một hình ảnh so sánh có từ <b>"như"</b> để câu văn sinh động hơn.</div>
   <div class="nav"><button class="btn sec" data-act="back">← Sửa ý</button><button class="btn pri" data-act="next">Bắt đầu viết bài →</button></div>`;
 }
 
-function framesFor(k){
-  const T = Ten(), t = ten(), a = A();
-  if(k==='mo') return [ `Nhà em có nuôi một ${a.name.replace(/^con /,'chú ')}${S.pet.trim()?` tên là ${S.pet.trim()}`:''}. `, `Trong các con vật nuôi, em thích nhất là `, `${cap(a.name)} là món quà mà `, `Em rất thích các con vật. Nhưng em yêu nhất là `];
-  if(k==='dang') return [ `${T} to bằng `, ...filledParts().slice(0,5).map(([lb])=>`${lb} của ${t} `), `Nổi bật nhất là `, `Trông ${t} giống như ` ];
-  if(k==='hoat') return [ `Mỗi buổi sáng, ${t} `, `Mỗi khi em đi học về, ${t} `, `Đặc biệt nhất là lúc `, `Thỉnh thoảng, ${t} ` ];
-  return [ `Em rất yêu quý ${t} vì `, `Em sẽ chăm sóc ${t} bằng cách `, `${T} như một người bạn ` ];
-}
-function ideasFor(k){
-  const g = x => (S.ans[x]||'').trim();
-  if(k==='mo') return [g('mo_nguon')].filter(Boolean);
-  if(k==='dang') return filledParts().map(([lb]) => `${lb}: ${g('p:'+lb)}`);
-  if(k==='hoat') return [g('hd'), g('tq')].filter(Boolean);
-  return [g('ket')].filter(Boolean);
-}
 function lastFeedback(){
   const v = cur(); if(!v) return '';
-  const lc = localCheck(v.essay).items.filter(i=>!i.ok);
-  const ai = v.ai;
-  const lines = [...lc.map(i=>i.h), ...(ai?.goiy||[]), ...((ai?.loi||[]).map(l=>`"${l.doan}": ${l.goiy}`))];
+  const lines = [...localCheck(v.essay).items.filter(i=>!i.ok).map(i=>i.h), ...(v.ai?.goiy||[]), ...((v.ai?.loi||[]).map(l=>`"${l.doan}": ${l.goiy}`))];
   if(!lines.length) return '';
   return `<div class="alert"><b>Lần chữa trước, em cần sửa:</b><ul style="margin:6px 0 0;padding-left:1.2rem">${lines.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
 }
+const countLine = k => `${U.cau(S.essay[k])} câu · ${words(S.essay[k]).length} chữ`;
+
 function vWrite(){
-  const other = S.animal==='meo' ? MODELS.ga : MODELS.meo;
+  const c = C(), m = T.mau.find(x => x.for !== c.dt.id) || T.mau[0];
   return `
   <section class="lead"><h2>Viết bài văn</h2>
    <p>Em viết từng phần vào trang vở. Nhìn "Ý của em" để biến mỗi ý thành câu. Nếu chưa biết bắt đầu thế nào, bấm vào một câu mở đầu gợi ý rồi viết tiếp.</p></section>
   ${lastFeedback()}
-  ${SECS.map(s=>{
-    const ideas = ideasFor(s.k);
+  ${T.secs.map(s=>{ const ideas = ideasFor(s.k);
     return `<div class="card">
       <div class="qh"><h3>${esc(s.title)}</h3>${sayBtn(s.title + '. ' + s.goal)}</div>
-      <p style="margin:0;color:var(--muted)">${esc(s.goal)} <b>Khoảng ${s.len}.</b></p>
-      <textarea class="oli ${s.k==='dang'||s.k==='hoat'?'tall':''}" id="w-${s.k}" data-sec="${s.k}" spellcheck="false" aria-label="${esc(s.title)}">${esc(S.essay[s.k])}</textarea>
+      <p style="margin:0;color:var(--muted)">${esc(s.goal)} <b>Khoảng ${esc(s.len)}.</b></p>
+      <textarea class="oli ${s.tall?'tall':''}" id="w-${s.k}" data-sec="${s.k}" spellcheck="false" aria-label="${esc(s.title)}">${esc(S.essay[s.k])}</textarea>
       <div class="meta"><span id="c-${s.k}">${countLine(s.k)}</span></div>
       <div class="help">
         ${ideas.length?`<span class="lbl">Ý của em</span><div class="chips">${ideas.map(i=>`<span class="chip static">${esc(i)}</span>`).join('')}</div>`:''}
         <span class="lbl">Câu mở đầu gợi ý</span>
-        <div class="chips">${framesFor(s.k).map(f=>`<button class="frame" data-act="frame" data-sec="${s.k}" data-t="${esc(f)}">${esc(f.trim())} …</button>`).join('')}</div>
-        <details class="model"><summary>Xem đoạn mẫu</summary><p>${esc(other[s.k])}</p><span class="note">Đây là đoạn tả ${esc(other.name)}, khác con vật của em. Em đọc để học cách viết, không chép nhé.</span></details>
+        <div class="chips">${s.frames(c).map(f=>`<button class="frame" data-act="frame" data-sec="${s.k}" data-t="${esc(f)}">${esc(f.trim())} …</button>`).join('')}</div>
+        ${m?.doan?.[s.k] ? `<details class="model"><summary>Xem đoạn mẫu</summary><p>${esc(m.doan[s.k])}</p><span class="note">Đây là đoạn tả ${esc(m.ten)}, khác bài của em. Em đọc để học cách viết, không chép nhé.</span></details>` : ''}
       </div></div>`;}).join('')}
   <div class="nav"><button class="btn sec" data-act="back">← Xem dàn ý</button><button class="btn pri" data-act="submit">Nộp bài để chữa →</button></div>`;
 }
-function countLine(k){ const n = sentences(S.essay[k]).length, w = words(S.essay[k]).length; return `${n} câu · ${w} chữ`; }
-
-const cur = () => S.versions[S.versions.length-1] || null;
 
 function marked(text, sec, v){
   const ranges = [];
-  lowerStarts({mo:'',dang:'',hoat:'',ket:'',[sec]:text}).forEach(r => ranges.push({s:r.s,e:r.e,cls:'warn',title:'Chữ đầu câu phải viết hoa'}));
-  const re = /(^|[^\p{L}])(nó)(?=[^\p{L}]|$)/giu; let m, c=0;
-  const total = countWord(text,'nó');
-  if(countWord([v.essay.mo,v.essay.dang,v.essay.hoat,v.essay.ket].join(' '),'nó') > 4 && total){
-    while((m = re.exec(text))){ c++; if(c>1){ const s = m.index + m[1].length; ranges.push({s, e:s+m[2].length, cls:'rep', title:'Từ "nó" bị lặp. Thử thay bằng tên hoặc "chú", "cô".'}); } }
+  lowerStarts({[sec]:text}).forEach(r => ranges.push({s:r.s, e:r.e, cls:'warn', title:'Chữ đầu câu phải viết hoa'}));
+  if(countWord(U.all(v.essay),'nó') > 4){
+    const re = /(^|[^\p{L}])(nó)(?=[^\p{L}]|$)/giu; let m, c=0;
+    while((m = re.exec(text))){ c++; if(c>1){ const s = m.index + m[1].length; ranges.push({s, e:s+m[2].length, cls:'rep', title:'Từ "nó" bị lặp. Thử thay bằng tên gọi.'}); } }
   }
   (v.ai?.loi||[]).forEach((l,i) => { if(l.phan===sec){ const s = text.indexOf(l.doan); if(s>=0) ranges.push({s, e:s+l.doan.length, cls:'err', n:i+1, title:l.goiy}); } });
   ranges.sort((a,b)=> a.s-b.s || (b.cls==='err')-(a.cls==='err'));
@@ -657,9 +544,7 @@ function marked(text, sec, v){
 function vCheck(){
   const v = cur();
   if(!v) return `<div class="card"><p>Em chưa nộp bài nào.</p><button class="btn pri" data-act="go" data-i="3">Đi viết bài</button></div>`;
-  const lc = localCheck(v.essay);
-  const ai = v.ai;
-  const levels = ['','Cần cố gắng thêm','Đã làm được','Làm tốt'];
+  const lc = localCheck(v.essay), ai = v.ai, levels = ['','Cần cố gắng thêm','Đã làm được','Làm tốt'], doDai = T.doDai || 150;
   let aiBox;
   if(aiBusy) aiBox = `<div class="row"><span class="spin"></span><span>Cô đang đọc bài của em… (khoảng nửa phút)</span><button class="btn sec" data-act="stop">Dừng</button></div>`;
   else if(ai) aiBox = `
@@ -667,23 +552,23 @@ function vCheck(){
      <div>${ai.tieuchi.map(t=>`<div class="lv"><span>${esc(t.ten)}</span><span class="dots" aria-label="${levels[t.muc]}">${[1,2,3].map(i=>`<i class="${i<=t.muc?'f':''}"></i>`).join('')}</span><span class="lvl">${levels[t.muc]}${t.nhanxet?' – '+esc(t.nhanxet):''}</span></div>`).join('')}</div>
      ${ai.goiy.length?`<div><b>Em thử nghĩ thêm:</b><ol class="qs">${ai.goiy.map(g=>`<li>${esc(g)}</li>`).join('')}</ol></div>`:''}
      ${ai.loi.length?`<div><b>Chỗ cần sửa</b> (số đỏ trong bài):<ul class="errs">${ai.loi.map((l,i)=>`<li><span class="num">${i+1}</span><span><q>${esc(l.doan)}</q> <small style="color:var(--muted)">(${esc(l.loai)})</small><br>${esc(l.goiy)}</span></li>`).join('')}</ul></div>`:''}
-     ${ai.dongvien?`<p class="pen" style="margin:0">${esc(ai.dongvien)}</p>`:''}`;
-  else if(!sampleReady) aiBox = `<p style="margin:0;color:var(--muted)">Đang kiểm tra…</p>`;
-  else if(sampleFn) aiBox = `<p style="margin:0">Cô AI sẽ đọc cả bài, khen điều em làm tốt và chỉ ra chỗ cần sửa. Cô không viết lại bài cho em đâu.</p><div class="row"><button class="btn red" data-act="ai">Cô AI nhận xét</button></div>`;
-  else aiBox = `<p style="margin:0;color:var(--muted)">Máy này chưa cài AI. Nhờ thầy cô bấm "Cài đặt AI" ở trên cùng và dán API key Gemini. Em vẫn dùng được phần Kiểm tra nhanh ở trên.</p>`;
+     ${ai.dongvien?`<p class="pen" style="margin:0">${esc(ai.dongvien)}</p>`:''}
+     <div class="row"><button class="btn sec" data-act="ai">Nhận xét lại</button></div>`;
+  else if(aiOn()) aiBox = `<p style="margin:0">Cô AI sẽ đọc cả bài, khen điều em làm tốt và chỉ ra chỗ cần sửa. Cô không viết lại bài cho em đâu.</p><div class="row"><button class="btn red" data-act="ai">Cô AI nhận xét</button></div>`;
+  else aiBox = `<p style="margin:0;color:var(--muted)">Máy này chưa cài AI. Nhờ thầy cô bấm "Cài đặt AI" ở trên cùng và dán API key Gemini. Em vẫn dùng được phần Kiểm tra nhanh.</p>`;
   if(aiMsg) aiBox += `<p style="margin:0;color:var(--red)">${esc(aiMsg)}</p>`;
-  const pct = Math.min(100, Math.round(lc.words/150*100));
+  const pct = Math.min(100, Math.round(lc.words/doDai*100));
   return `
   <section class="lead"><h2>Chữa bài</h2><p>Đọc kỹ nhận xét, rồi bấm "Sửa bài" để tự sửa. Sửa xong em nộp lại để xem mình tiến bộ thế nào.</p></section>
   <div class="check-layout">
-    <div class="card"><div class="qh"><h3>Bài của em <span class="tag">Lần ${S.versions.length}</span></h3>${sayBtn([v.essay.mo,v.essay.dang,v.essay.hoat,v.essay.ket].join(' '))}</div>
-      <div class="essay">${SECS.map(s=>`<div class="ph">${esc(s.title)}</div><div class="oli">${marked(v.essay[s.k],s.k,v) || '<span style="color:var(--muted)">(chưa viết)</span>'}</div>`).join('')}</div>
+    <div class="card"><div class="qh"><h3>Bài của em <span class="tag">Lần ${S.versions.length}</span></h3>${sayBtn(Object.values(v.essay).join(' '))}</div>
+      <div class="essay">${T.secs.map(s=>`<div class="ph">${esc(s.title)}</div><div class="oli">${marked(v.essay[s.k]||'',s.k,v) || '<span style="color:var(--muted)">(chưa viết)</span>'}</div>`).join('')}</div>
       <div class="legend"><span><i style="background:var(--red)"></i>Cô AI chỉ lỗi</span><span><i style="background:var(--warn)"></i>Chưa viết hoa / lặp từ</span></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
       <div class="card"><h3>Kiểm tra nhanh</h3>
-        <div class="row" style="justify-content:space-between"><div class="score">${lc.score}<span> / ${lc.total} điều đã làm tốt</span></div></div>
-        <div><div class="meta"><span>Độ dài: ${lc.words} chữ</span><span>Nên khoảng 150 chữ trở lên</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
+        <div class="score">${lc.score}<span> / ${lc.total} điều đã làm tốt</span></div>
+        <div><div class="meta"><span>Độ dài: ${lc.words} chữ</span><span>Nên khoảng ${doDai} chữ trở lên</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
         <ul class="checks">${lc.items.map(i=>`<li class="${i.ok?'ok':'no'}"><span class="ic" aria-hidden="true">${i.ok?'✓':'!'}</span><span>${esc(i.t)}${i.ok?'':`<small>${esc(i.h)}</small>`}</span></li>`).join('')}</ul>
       </div>
       <div class="card teacher"><h3>Cô nhận xét</h3>${aiBox}</div>
@@ -697,88 +582,80 @@ function vCheck(){
   <div id="confirm"></div>`;
 }
 
-/* ---------------- Gọi Gemini ---------------- */
+/* ======================= GỌI GEMINI ======================= */
 function buildPrompt(e){
-  const a = A();
-  return `Bạn là cô giáo dạy Tiếng Việt lớp 4 ở Việt Nam, hiền và hay động viên. Một học sinh lớp 4 (9–10 tuổi, viết văn còn yếu) vừa viết bài văn tả con vật: ${a.name}${S.pet.trim()?`, tên là ${S.pet.trim()}`:''}.
+  const c = C(), tc = T.ai.tieuChi;
+  const bai = T.secs.map(s => `[${s.title.toUpperCase()}]\n${(e[s.k]||'').trim() || '(bỏ trống)'}`).join('\n');
+  const mau = {khen:['...','...'], tieuchi: tc.map(t=>({ten:t, muc:2, nhanxet:'...'})), goiy:['...'], loi:[{phan:T.secs[1].k, doan:'...', loai:'chính tả', goiy:'...'}], dongvien:'...'};
+  return `Bạn là cô giáo dạy Tiếng Việt lớp 4 ở Việt Nam, hiền và hay động viên. Một học sinh lớp 4 (9–10 tuổi, viết văn còn yếu) vừa viết ${T.ai.deBai(c)}.
 
 BÀI CỦA HỌC SINH (giữ nguyên, kể cả lỗi):
-[MỞ BÀI]
-${e.mo || '(bỏ trống)'}
-[THÂN BÀI – TẢ HÌNH DÁNG]
-${e.dang || '(bỏ trống)'}
-[THÂN BÀI – TẢ HOẠT ĐỘNG, THÓI QUEN]
-${e.hoat || '(bỏ trống)'}
-[KẾT BÀI]
-${e.ket || '(bỏ trống)'}
+${bai}
 
 Nhiệm vụ: nhận xét để học sinh TỰ sửa bài.
 Quy tắc bắt buộc:
 - Không viết lại bài, không viết câu văn hoàn chỉnh thay học sinh.
 - Lời ngắn, dễ hiểu với trẻ 9 tuổi. Xưng "cô", gọi học sinh là "em".
 - "khen": 2 lời khen cụ thể, nhắc đúng chi tiết em đã viết.
-- "goiy": tối đa 3 CÂU HỎI giúp em nghĩ thêm (ví dụ: "Bộ lông của nó sờ vào thấy thế nào?"), ưu tiên điều quan trọng nhất.
-- "loi": tối đa 6 lỗi quan trọng nhất (chính tả, dùng từ, câu sai). "doan" phải chép NGUYÊN VĂN 1–6 chữ có trong bài, đúng từng dấu. "phan" là mo, dang, hoat hoặc ket. Lỗi chính tả thì "goiy" ghi chữ viết đúng; lỗi khác thì "goiy" là lời nhắc ngắn, không viết lại cả câu.
-- "tieuchi": đúng 6 tiêu chí như mẫu, "muc" là 3 (Làm tốt), 2 (Đã làm được) hoặc 1 (Cần cố gắng thêm), "nhanxet" một câu ngắn.
+- "goiy": tối đa 3 CÂU HỎI giúp em nghĩ thêm (ví dụ: "${T.ai.viDu}"), ưu tiên điều quan trọng nhất.
+- "loi": tối đa 6 lỗi quan trọng nhất (chính tả, dùng từ, câu sai). "doan" phải chép NGUYÊN VĂN 1–6 chữ có trong bài, đúng từng dấu. "phan" là một trong: ${T.secs.map(s=>s.k).join(', ')} (${T.secs.map(s=>s.k+' = '+s.title).join('; ')}). Lỗi chính tả thì "goiy" ghi chữ viết đúng; lỗi khác thì "goiy" là lời nhắc ngắn, không viết lại cả câu.
+- "tieuchi": đúng ${tc.length} tiêu chí như mẫu, "muc" là 3 (Làm tốt), 2 (Đã làm được) hoặc 1 (Cần cố gắng thêm), "nhanxet" một câu ngắn.
 - "dongvien": một câu động viên.
 
 Chỉ trả lời bằng một đối tượng JSON theo đúng dạng:
-{"khen":["...","..."],"tieuchi":[{"ten":"Bố cục đủ 3 phần","muc":2,"nhanxet":"..."},{"ten":"Tả hình dáng","muc":2,"nhanxet":"..."},{"ten":"Tả hoạt động, thói quen","muc":2,"nhanxet":"..."},{"ten":"Từ ngữ hay, hình ảnh so sánh","muc":2,"nhanxet":"..."},{"ten":"Câu và chính tả","muc":2,"nhanxet":"..."},{"ten":"Tình cảm của em","muc":2,"nhanxet":"..."}],"goiy":["..."],"loi":[{"phan":"dang","doan":"...","loai":"chính tả","goiy":"..."}],"dongvien":"..."}`;
+${JSON.stringify(mau)}`;
 }
 function normalize(r, e){
-  const arr = x => Array.isArray(x) ? x : [];
-  const str = x => typeof x === 'string' ? x.trim() : '';
+  const arr = x => Array.isArray(x) ? x : [], str = x => typeof x === 'string' ? x.trim() : '', keys = T.secs.map(s=>s.k);
   return {
     khen: arr(r?.khen).map(str).filter(Boolean).slice(0,2),
-    tieuchi: arr(r?.tieuchi).map(t=>({ten:str(t?.ten), muc: Math.min(3,Math.max(1,Math.round(Number(t?.muc)||1))), nhanxet:str(t?.nhanxet)})).filter(t=>t.ten).slice(0,6),
+    tieuchi: arr(r?.tieuchi).map(t=>({ten:str(t?.ten), muc: Math.min(3,Math.max(1,Math.round(Number(t?.muc)||1))), nhanxet:str(t?.nhanxet)})).filter(t=>t.ten).slice(0,8),
     goiy: arr(r?.goiy).map(str).filter(Boolean).slice(0,3),
     loi: arr(r?.loi).map(l=>({phan:str(l?.phan), doan:str(l?.doan), loai:str(l?.loai)||'lỗi', goiy:str(l?.goiy)}))
-      .map(l=>{ if(!(e[l.phan]||'').includes(l.doan)){ const f = ['mo','dang','hoat','ket'].find(k=>(e[k]||'').includes(l.doan)); l.phan = f||''; } return l; })
+      .map(l=>{ if(!(e[l.phan]||'').includes(l.doan)) l.phan = keys.find(k=>(e[k]||'').includes(l.doan)) || ''; return l; })
       .filter(l=>l.doan && l.phan).slice(0,6),
     dongvien: str(r?.dongvien)
   };
 }
 async function askAI(){
-  const v = cur(); if(!v || !sampleFn || aiBusy) return;
-  aiBusy = true; aiMsg=''; aiCtl = new AbortController(); render(false);
-  try{
-    const r = await sampleFn.json(buildPrompt(v.essay), {signal: aiCtl.signal});
-    v.ai = normalize(r, v.essay); save();
-  }catch(e){ if(e?.code !== 'cancelled') aiMsg = errCopy(e?.code); }
-  finally{ aiBusy = false; if(S.step===4) render(false); }
+  const v = cur(); if(!v || !aiOn() || aiBusy) return;
+  const myT = T; aiBusy = true; aiMsg=''; aiCtl = new AbortController(); render(false);
+  try{ const r = await geminiJSON(buildPrompt(v.essay), {signal: aiCtl.signal}); if(T===myT){ v.ai = normalize(r, v.essay); save(); } }
+  catch(e){ if(e?.code !== 'cancelled') aiMsg = errCopy(e?.code); }
+  finally{ aiBusy = false; if(T===myT && S.step===4) render(false); }
 }
 async function wordBank(){
-  if(!sampleFn || wbBusy) return; const a = A();
+  const tn = T.chon.khac.tuNguAI; if(!aiOn() || wbBusy || !tn) return;
+  const myT = T, raw = S.custom.trim();
   wbBusy = true; render(false);
-  try{
-    const r = await sampleFn.json(`Học sinh lớp 4 ở Việt Nam chuẩn bị viết bài văn tả ${a.name}. Hãy liệt kê 5–7 bộ phận nên tả (theo thứ tự: tầm vóc, bao quát trước, rồi từng bộ phận) và với mỗi bộ phận 3–5 từ ngữ gợi tả ngắn, đơn giản, đúng thực tế. Thêm 5–7 hoạt động, thói quen ngắn của con vật này. Chỉ trả lời JSON dạng {"bophan":[{"ten":"Bộ lông","tu":["...","..."]}],"hoatdong":["..."]}`);
-    const parts = (Array.isArray(r?.bophan)?r.bophan:[]).map(b=>[String(b?.ten||'').trim(), (Array.isArray(b?.tu)?b.tu:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,6)]).filter(p=>p[0]).slice(0,8);
-    const hoat = (Array.isArray(r?.hoatdong)?r.hoatdong:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,8);
-    if(parts.length){ S.customParts = {for:S.custom.trim(), parts, hoat}; save(); toast('Đã có từ gợi ý mới'); }
-  }catch(e){ if(e?.code!=='cancelled') toast(errCopy(e?.code)); }
-  finally{ wbBusy=false; if(S.step===1) render(false); }
+  try{ const r = await geminiJSON(tn.prompt(C().dt.name)); const data = tn.apply(r, U);
+    if(T===myT && data){ S.customData = {for:raw, data}; save(); toast('Đã có từ gợi ý mới'); } }
+  catch(e){ if(e?.code!=='cancelled') toast(errCopy(e?.code)); }
+  finally{ wbBusy=false; if(T===myT && S.step===1) render(false); }
 }
 
-/* ---------------- Sự kiện ---------------- */
+/* ======================= SỰ KIỆN ======================= */
 function goStep(i){ S.step = i; S.reach = Math.max(S.reach, i); save(); render(); }
 document.addEventListener('click', ev => {
   const b = ev.target.closest('[data-act]'); if(!b) return;
   const act = b.dataset.act;
+  if(act==='set-open'){ setOpen=!setOpen; setMsg=''; renderSettings(); if(setOpen) window.scrollTo({top:0}); return; }
+  if(act==='set-close'){ setOpen=false; renderSettings(); return; }
+  if(act==='set-test'){ testKey(); return; }
+  if(act==='set-clear'){ G={key:'',model:'',models:[]}; try{ localStorage.removeItem(GKEY); }catch(e){} setOk=true; setMsg='Đã xóa key khỏi máy này.'; renderSettings(); render(false); return; }
+  if(act==='say'){ speak(b.dataset.t); return; }
+  if(!T) return;
   if(act==='go'){ goStep(+b.dataset.i); }
-  else if(act==='pick'){ const id=b.dataset.id; if(S.animal!==id){ S.animal=id; if(id!=='khac') S.customParts=null; } save(); render(false); if(id==='khac') setTimeout(()=>$('#custom')?.focus(),0); }
+  else if(act==='pick'){ const id=b.dataset.id; S.dt=id; save(); render(false); if(id==='khac') setTimeout(()=>$('#custom')?.focus(),0); }
   else if(act==='next'){
-    if(S.step===1){
-      const fp = filledParts().length, need = [];
-      if(fp<3) need.push(`tả ít nhất 3 bộ phận (em mới có ${fp})`);
-      if(!(S.ans.hd||'').trim()) need.push('trả lời câu hỏi về hoạt động');
-      if(need.length){ $('#miss').innerHTML = `<div class="alert"><b>Em còn thiếu:</b> ${esc(need.join(' và '))}. Bấm vào từ gợi ý nếu em chưa nghĩ ra nhé.</div>`; $('#miss').scrollIntoView({behavior:'smooth',block:'center'}); return; }
-    }
+    if(S.step===1){ const need = T.batBuoc(C(), U);
+      if(need.length){ $('#miss').innerHTML = `<div class="alert"><b>Em còn thiếu:</b> ${esc(need.join('; '))}. Bấm vào từ gợi ý nếu em chưa nghĩ ra nhé.</div>`; $('#miss').scrollIntoView({behavior:'smooth',block:'center'}); return; } }
     goStep(S.step+1);
   }
   else if(act==='back'){ goStep(S.step-1); }
   else if(act==='chip'){
-    const k=b.dataset.k, w=b.dataset.w, cur0=(S.ans[k]||'').trim();
-    S.ans[k] = cur0 ? cur0.replace(/[,\s]+$/,'') + ', ' + w : w; save();
+    const k=b.dataset.k, w=b.dataset.w, c0=(S.ans[k]||'').trim();
+    S.ans[k] = c0 ? c0.replace(/[,\s]+$/,'') + ', ' + w : w; save();
     const ta = document.getElementById('q-'+k); if(ta) ta.value = S.ans[k];
   }
   else if(act==='frame'){
@@ -787,10 +664,9 @@ document.addEventListener('click', ev => {
     S.essay[sec] = v + t; ta.value = S.essay[sec]; ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
     $('#c-'+sec).textContent = countLine(sec); save();
   }
-  else if(act==='say'){ speak(b.dataset.t); }
   else if(act==='submit'){
     const e = {...S.essay};
-    if(!words([e.mo,e.dang,e.hoat,e.ket].join(' ')).length){ toast('Em viết bài trước rồi mới nộp nhé'); return; }
+    if(!words(U.all(e)).length){ toast('Em viết bài trước rồi mới nộp nhé'); return; }
     const last = cur();
     if(!last || JSON.stringify(last.essay)!==JSON.stringify(e)) S.versions.push({t:Date.now(), essay:e, ai:null});
     aiMsg=''; goStep(4);
@@ -799,19 +675,15 @@ document.addEventListener('click', ev => {
   else if(act==='stop'){ aiCtl?.abort(); }
   else if(act==='wordbank'){ wordBank(); }
   else if(act==='copy'){
-    const v=cur(); const a=A();
-    const text = `BÀI VĂN TẢ ${a.name.toUpperCase()}\n\n` + ['mo','dang','hoat','ket'].map(k=>v.essay[k].trim()).filter(Boolean).join('\n\n');
+    const v=cur(), dt=D();
+    const text = `BÀI VĂN ${T.ten.toUpperCase()}: ${dt.name.toUpperCase()}\n\n` + T.secs.map(s=>(v.essay[s.k]||'').trim()).filter(Boolean).join('\n\n');
     const done = ()=>toast('Đã chép bài. Em dán vào tin nhắn gửi cô nhé.');
     try{ navigator.clipboard.writeText(text).then(done, ()=>fallbackCopy(text)); }catch(e){ fallbackCopy(text); }
   }
-  else if(act==='set-open'){ setOpen=!setOpen; setMsg=''; renderSettings(); if(setOpen) window.scrollTo({top:0}); }
-  else if(act==='set-close'){ setOpen=false; renderSettings(); }
-  else if(act==='set-test'){ testKey(); }
-  else if(act==='set-clear'){ G={key:'',model:'',models:[]}; try{ localStorage.removeItem(GKEY); }catch(e){} refreshAI(); setOk=true; setMsg='Đã xóa key khỏi máy này.'; renderSettings(); render(false); }
   else if(act==='reset'){
-    $('#confirm').innerHTML = `<div class="confirm"><span>Bài hiện tại sẽ bị xóa khỏi máy này. Em chắc chưa?</span><button class="btn red" data-act="reset-yes">Xóa và làm bài mới</button><button class="btn sec" data-act="reset-no">Thôi</button></div>`;
+    $('#confirm').innerHTML = `<div class="confirm"><span>Bài ${esc(T.ten.toLowerCase())} hiện tại sẽ bị xóa khỏi máy này. Em chắc chưa?</span><button class="btn red" data-act="reset-yes">Xóa và làm bài mới</button><button class="btn sec" data-act="reset-no">Thôi</button></div>`;
   }
-  else if(act==='reset-yes'){ S = fresh(); try{ localStorage.removeItem(KEY); }catch(e){} render(); }
+  else if(act==='reset-yes'){ S = fresh(); try{ localStorage.removeItem(SKEY(T.id)); if(T.id==='ta-con-vat') localStorage.removeItem('em-ta-con-vat-v1'); }catch(e){} render(); }
   else if(act==='reset-no'){ $('#confirm').innerHTML=''; }
 });
 function fallbackCopy(text){
@@ -819,21 +691,29 @@ function fallbackCopy(text){
   $('#confirm').innerHTML = '<p style="margin:0 0 6px">Máy chưa cho chép tự động. Em chọn hết chữ dưới đây rồi chép nhé:</p>'; $('#confirm').append(ta); ta.focus(); ta.select();
 }
 document.addEventListener('input', ev => {
-  const el = ev.target;
+  const el = ev.target; if(!T) return;
   if(el.dataset.sec){ S.essay[el.dataset.sec] = el.value; const c=$('#c-'+el.dataset.sec); if(c) c.textContent = countLine(el.dataset.sec); save(); return; }
   const k = el.dataset.k; if(!k) return;
-  if(k==='custom'){ S.custom = el.value; if(S.customParts && S.customParts.for !== el.value.trim()) S.customParts=null; const nb=document.querySelector('[data-act="next"]'); if(nb) nb.disabled = !el.value.trim(); }
-  else if(k==='pet'){ S.pet = el.value; }
+  if(k==='custom'){ S.custom = el.value; const nb=document.querySelector('[data-act="next"]'); if(nb) nb.disabled = !el.value.trim(); }
   else S.ans[k] = el.value;
   save();
 });
 document.addEventListener('change', ev => {
-  if(ev.target.id==='gmodel'){ G.model = ev.target.value; saveG(); refreshAI(); setOk=true; setMsg='Đã chuyển sang ' + G.model + '.'; renderSettings(); return; }
-  if(ev.target.dataset.k==='pet' && S.step===1){ setTimeout(()=>{ const id=document.activeElement?.id; const y=window.scrollY; render(false); window.scrollTo({top:y}); if(id){ const el=document.getElementById(id); if(el){ el.focus({preventScroll:true}); try{ el.setSelectionRange(el.value.length, el.value.length); }catch(e){} } } },0); }
+  const el = ev.target;
+  if(el.id==='gmodel'){ G.model = el.value; saveG(); setOk=true; setMsg='Đã chuyển sang ' + G.model + '.'; renderSettings(); return; }
+  if(el.dataset.rr && T && S.step===1){ setTimeout(()=>{ const id=document.activeElement?.id; const y=window.scrollY; render(false); window.scrollTo({top:y}); if(id){ const f=document.getElementById(id); if(f){ f.focus({preventScroll:true}); try{ f.setSelectionRange(f.value.length, f.value.length); }catch(e){} } } },0); }
 });
 
-render();
-if(!G.key){ setOpen = true; setMsg=''; }
+/* ---------- điều hướng: #ta-con-vat, #ta-cay-coi ... ---------- */
+function route(){
+  const id = decodeURIComponent(location.hash.slice(1));
+  const nt = KB.find(k => k.id === id) || null;
+  if(nt !== T){ T = nt; S = T ? loadS() : null; aiCtl?.abort(); aiBusy=false; aiMsg=''; wbBusy=false; }
+  render();
+}
+window.addEventListener('hashchange', route);
+route();
+if(!G.key) setOpen = true;
 renderSettings();
 </script>
 
