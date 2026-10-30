@@ -7,47 +7,47 @@
 <meta name="description" content="Web giúp học sinh lớp 4 học viết văn theo từng bước: tả con vật, tả cây cối…, có AI Gemini nhận xét.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Lexend:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap">
 <style>
-/* Layout: a school exercise book (vở ô li) — violet ink for the child's work, teacher's red pen for corrections, one step per screen. */
+/* Layout: a school exercise book (vở ô li) — blue ink for the child's work, teacher's red pen for corrections, one step per screen. */
 :root{
-  --bg:#f2f1f7; --surface:#ffffff; --paper:#fffffe;
-  --fg:#1f1c2e; --muted:#635f78;
-  --ink:#4b2fb0; --ink-soft:#ece7ff; --on-ink:#ffffff;
-  --red:#cf2f36; --red-soft:#fde8e8;
-  --ok:#23824a; --ok-soft:#e3f5e9;
-  --warn:#a86200; --warn-soft:#fff2db;
-  --line:#c9c0ee; --line-faint:#ece8fa; --margin:#eab0b4;
-  --border:#dedaea; --chip:#f6f4fd;
-  --f-display:"Baloo 2","Lexend",system-ui,sans-serif;
-  --f-body:"Lexend",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --bg:#eef3f8; --surface:#ffffff; --paper:#fffffe;
+  --fg:#16263a; --muted:#56677d;
+  --ink:#1c5bb5; --ink-soft:#e3eefc; --on-ink:#ffffff;
+  --red:#d2343a; --red-soft:#fde8e8;
+  --ok:#1f7d48; --ok-soft:#e1f4e8;
+  --warn:#a35d00; --warn-soft:#fff1d6;
+  --line:#b9cdea; --line-faint:#e4ecf8; --margin:#eeb1b4;
+  --border:#d6e0ec; --chip:#f2f6fc;
+  --f-display:"Mali","Quicksand",system-ui,sans-serif;
+  --f-body:"Quicksand",system-ui,-apple-system,"Segoe UI",sans-serif;
   --lh:2.25rem;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#13111c; --surface:#1d1a2a; --paper:#1a1826;
-  --fg:#edeaf7; --muted:#a8a3bf;
-  --ink:#b8a6ff; --ink-soft:#2c2650; --on-ink:#15122a;
+  --bg:#0f1622; --surface:#172131; --paper:#141d2b;
+  --fg:#e7eef8; --muted:#9fb0c6;
+  --ink:#8fbaf5; --ink-soft:#1d3352; --on-ink:#0d1726;
   --red:#ff8087; --red-soft:#3a1d24;
   --ok:#6fd796; --ok-soft:#183324;
   --warn:#ffc163; --warn-soft:#3a2c14;
-  --line:#3a3460; --line-faint:#24203a; --margin:#5e2d38;
-  --border:#322d48; --chip:#252138; color-scheme:dark;}}
+  --line:#2e4566; --line-faint:#1c2a3e; --margin:#5e2d38;
+  --border:#283a52; --chip:#1c2a3d; color-scheme:dark;}}
 :root[data-theme="dark"]{
-  --bg:#13111c; --surface:#1d1a2a; --paper:#1a1826;
-  --fg:#edeaf7; --muted:#a8a3bf;
-  --ink:#b8a6ff; --ink-soft:#2c2650; --on-ink:#15122a;
+  --bg:#0f1622; --surface:#172131; --paper:#141d2b;
+  --fg:#e7eef8; --muted:#9fb0c6;
+  --ink:#8fbaf5; --ink-soft:#1d3352; --on-ink:#0d1726;
   --red:#ff8087; --red-soft:#3a1d24;
   --ok:#6fd796; --ok-soft:#183324;
   --warn:#ffc163; --warn-soft:#3a2c14;
-  --line:#3a3460; --line-faint:#24203a; --margin:#5e2d38;
-  --border:#322d48; --chip:#252138; color-scheme:dark;}
+  --line:#2e4566; --line-faint:#1c2a3e; --margin:#5e2d38;
+  --border:#283a52; --chip:#1c2a3d; color-scheme:dark;}
 
 *{box-sizing:border-box}
 html{color-scheme:light}
 body{margin:0}
 [hidden]{display:none!important}
 img{max-width:100%}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.55;
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-weight:500;font-size:17px;line-height:1.55;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 .wrap{max-width:880px;margin:0 auto}
